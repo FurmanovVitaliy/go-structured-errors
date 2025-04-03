@@ -1,4 +1,4 @@
-package errors
+package apperror
 
 import (
 	"fmt"
@@ -93,6 +93,16 @@ func Wrap(err error, service, code, message string) *AppError {
 	}
 }
 
+func WrapWithAppError(err error, appErr *AppError) *AppError {
+	return &AppError{
+		Service: appErr.Service,
+		Code:    appErr.Code,
+		Message: appErr.Message,
+		Cause:   err,
+		Fields:  make(ErrorFields),
+	}
+}
+
 // Добавление полей
 func (e *AppError) WithFields(fields ErrorFields) *AppError {
 	for k, v := range fields {
@@ -145,9 +155,3 @@ func FromGRPCStatus(st *status.Status) *AppError {
 		grpcCode: code,
 	}
 }
-
-// Примеры использования
-var (
-	ErrInternal     = New("common", "00100", "internal error").WithGRPCCode(codes.Internal)
-	ErrInvalidInput = New("common", "00101", "invalid input").WithGRPCCode(codes.InvalidArgument)
-)
