@@ -16,6 +16,7 @@ type AppError struct {
 	Service string      // Идентификатор сервиса
 	Code    string      // Уникальный код ошибки
 	Message string      // Человекочитаемое сообщение
+	Details string      // Дополнительные детали
 	Fields  ErrorFields // Дополнительные поля
 	Cause   error       // Исходная ошибка
 
@@ -48,6 +49,12 @@ func (e *AppError) Unwrap() error {
 func (e *AppError) WithGRPCCode(c codes.Code) *AppError {
 	e.grpcCode = c
 	return e
+}
+
+func (e *AppError) SetDetails(details string) *AppError {
+	copy := *e
+	copy.Message = copy.Message + " : " + details
+	return &copy
 }
 
 // Реализует интерфейс для gRPC статуса
