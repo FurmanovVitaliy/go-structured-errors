@@ -110,3 +110,29 @@ func (e *AppError) Error() string {
 func (e *AppError) Unwrap() error {
 	return e.cause
 }
+
+// Is checks if the target error is an AppError with the same identity.
+// It allows AppError to be used with errors.Is.
+// The comparison is based on Service and Code. If the target error also has fields,
+// it checks if all of those fields are present and have the same values in the source error.
+func (e *AppError) Is(target error) bool {
+	t, ok := target.(*AppError)
+	if !ok {
+		return false
+	}
+
+	// Core identity check
+	if e.Service != t.Service || e.Code != t.Code {
+		return false
+	}
+
+	// If the target has fields, ensure they are all present in the source error.
+	// This allows for flexible testing: you can check for a subset of fields.
+	for key, val := range t.Fields {
+		if v, ok := e.Fields[key]; !ok || v != val {
+			return false
+		}
+	}
+
+	return true
+}
