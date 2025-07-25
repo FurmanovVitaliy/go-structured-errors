@@ -1,4 +1,4 @@
-# Structure errors for Go
+# Structured Errors for Go
 ## Package `apperror`
 
 This package provides a robust and structured error handling mechanism for Go applications, particularly tailored for microservices architectures using gRPC and grpc-gateway.
