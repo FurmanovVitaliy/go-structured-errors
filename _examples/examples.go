@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/FurmanovVitaliy/go-structured-errors/apperror"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
 )
 
@@ -62,10 +63,18 @@ func main() {
 	fmt.Printf("Error recreated from status:\n%s\n", errFromStatus)
 
 	// --- 5. Simulating logging with Trace ID ---
-	// First, let's create a context with a trace ID.
-	// In a real app, a middleware would do this.
-	traceID := "a1b2c3d4-e5f6-g7h8-i9j0"
-	ctx := context.WithValue(context.Background(), apperror.TraceIDKey{}, traceID)
+	// In a real app, an instrumentation library or middleware (like for gRPC or HTTP)
+	// would start a span and put it in the context.
+	// Here, we'll manually create a valid OpenTelemetry span context for demonstration.
+	traceID, _ := trace.TraceIDFromHex("a1b2c3d4e5f61234a1b2c3d4e5f61234")
+	spanID, _ := trace.SpanIDFromHex("a1b2c3d4e5f64321")
+
+	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID:    traceID,
+		SpanID:     spanID,
+		TraceFlags: trace.TraceFlags(01), // Mark as sampled
+	})
+	ctx := trace.ContextWithSpanContext(context.Background(), spanContext)
 
 	// Now, we'll convert our business error to JSON for logging.
 	// The ToJSON function will automatically pick up the trace_id from the context.
