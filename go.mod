@@ -5,6 +5,8 @@ go 1.24.0
 require github.com/FurmanovVitaliy/grpc-api v0.3.5
 
 require (
+	go.opentelemetry.io/otel v1.37.0 // indirect
+	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
