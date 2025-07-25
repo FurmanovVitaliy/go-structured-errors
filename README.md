@@ -10,8 +10,8 @@ This package provides a robust and structured error handling mechanism for Go ap
 - **Fluent API**: Chain methods to build and enrich errors declaratively (`err.WithField(...).WithGRPCCode(...)`).
 - **gRPC Integration**: Seamlessly convert application errors to and from `gRPC status` objects, preserving all structured details.
 - **grpc-gateway Ready**: Includes a custom error handler to translate gRPC errors into clean, structured JSON HTTP responses for your clients.
-- **Traceability**: Designed to integrate with distributed tracing systems (like OpenTelemetry) by consuming a `trace_id` from the context.
-- **Structured Logging**: Provides a JSON marshaler to produce log-friendly output.
+- **Traceability**: Directly integrates with OpenTelemetry by extracting the `trace_id` from the `SpanContext` in the `context`.
+- **Structured Logging**: Provides a JSON marshaler to produce log-friendly output, automatically including the `trace_id`.
 
 ---
 
@@ -65,11 +65,11 @@ func someServiceLogic(id string) error {
 
 ## Running the Example
 
-A complete, runnable example is available in the `examples` directory.
+A complete, runnable example is available in the `_examples` directory.
 To run it from the project's root directory, use the following command:
 
 ```sh
-go run ./examples/main.go
+go run ./_examples
 ```
 
 This will execute the demonstration and print a detailed output showcasing all features of the package.
@@ -100,7 +100,7 @@ Error recreated from status:
 
 --- Scenario 5: Structured JSON Logging with Trace ID ---
 JSON output for logger:
-{"service":"user-service","code":"US-404","message":"user not found","fields":{"attempt":"1","searched_id":"user-456","source":"web_api"},"trace_id":"a1b2c3d4-e5f6-g7h8-i9j0"}
+{"service":"user-service","code":"US-404","message":"user not found","fields":{"attempt":"1","searched_id":"user-456","source":"web_api"},"trace_id":"a1b2c3d4e5f61234a1b2c3d4e5f61234"}
 
 --- Scenario 6: Standard Library Error Unwrapping ---
 ✅ errors.Is check passed: wrappedErr contains the original dbErr.
