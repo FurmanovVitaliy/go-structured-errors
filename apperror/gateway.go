@@ -7,12 +7,9 @@ import (
 
 	pb "github.com/FurmanovVitaliy/grpc-api/gen/go/errors/errors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/status"
 )
-
-// traceIDKey is the type used for the trace_id key in the context.
-// Using a custom type prevents key collisions.
-type TraceIDKey struct{}
 
 // HTTPError represents a structured error response for an HTTP API.
 type HTTPError struct {
@@ -49,9 +46,9 @@ func GRPCAppErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler r
 		}
 	}
 
-	// Add trace_id to the response if it exists in the context.
-	if traceID, ok := ctx.Value(TraceIDKey{}).(string); ok {
-		resp.TraceID = traceID
+	// Extract trace ID from the context using OpenTelemetry.
+	if span := trace.SpanContextFromContext(ctx); span.HasTraceID() {
+		resp.TraceID = span.TraceID().String()
 	}
 
 	w.Header().Set("Content-Type", marshaler.ContentType(resp))

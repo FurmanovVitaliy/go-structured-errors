@@ -3,6 +3,8 @@ package apperror
 import (
 	"context"
 	"encoding/json"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ToJSON marshals an AppError to a JSON byte slice, suitable for structured logging.
@@ -21,8 +23,8 @@ func ToJSON(ctx context.Context, err error) []byte {
 	type alias AppError
 
 	// Enrich the error with the trace_id from the context before marshaling.
-	if traceID, ok := ctx.Value(TraceIDKey{}).(string); ok {
-		appErr.traceID = traceID
+	if span := trace.SpanContextFromContext(ctx); span.HasTraceID() {
+		appErr.traceID = span.TraceID().String()
 	}
 
 	b, marshalErr := json.Marshal(&struct {
