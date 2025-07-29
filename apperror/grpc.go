@@ -1,17 +1,18 @@
 package apperror
 
 import (
-	pb "github.com/FurmanovVitaliy/grpc-api/gen/go/errors/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	pb "github.com/FurmanovVitaliy/grpc-api/gen/go/errors/errors"
 )
 
 // WithGRPCCode returns a new AppError with the specified gRPC status code.
 // It allows for setting the gRPC code that will be used when converting the error to a gRPC Status.
 func (e *AppError) WithGRPCCode(code codes.Code) *AppError {
-	copy := *e
-	copy.grpcCode = int(code)
-	return &copy
+	copyErr := *e
+	copyErr.grpcCode = uint32(code)
+	return &copyErr
 }
 
 // GRPCStatus converts the AppError to a gRPC *status.Status.
@@ -53,11 +54,11 @@ func FromGRPCStatus(st *status.Status) *AppError {
 	for _, d := range st.Details() {
 		if detail, ok := d.(*pb.ErrorDetail); ok {
 			return &AppError{
-				Service:  detail.Service,
-				Code:     detail.Code,
-				Message:  detail.Message,
-				Fields:   detail.Fields,
-				grpcCode: int(st.Code()),
+				Service:  detail.GetService(),
+				Code:     detail.GetCode(),
+				Message:  detail.GetMessage(),
+				Fields:   detail.GetFields(),
+				grpcCode: uint32(st.Code()),
 			}
 		}
 	}
@@ -67,6 +68,6 @@ func FromGRPCStatus(st *status.Status) *AppError {
 		Service:  "unknown",
 		Code:     "00000",
 		Message:  st.Message(),
-		grpcCode: int(st.Code()),
+		grpcCode: uint32(st.Code()),
 	}
 }

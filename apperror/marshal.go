@@ -3,6 +3,7 @@ package apperror
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"go.opentelemetry.io/otel/trace"
 )
@@ -11,8 +12,8 @@ import (
 // It enriches the error with a trace_id from the context, if available.
 // The marshaling is done using a custom alias to avoid marshaling recursion.
 func ToJSON(ctx context.Context, err error) []byte {
-	appErr, ok := err.(*AppError)
-	if !ok {
+	var appErr *AppError
+	if !errors.As(err, &appErr) {
 		// If the error is not an AppError, marshal it as a simple string.
 		return []byte(`{"error":"` + err.Error() + `"}`)
 	}
@@ -29,6 +30,7 @@ func ToJSON(ctx context.Context, err error) []byte {
 
 	b, marshalErr := json.Marshal(&struct {
 		*alias
+
 		TraceID string `json:"trace_id,omitempty"`
 	}{
 		alias:   (*alias)(appErr),

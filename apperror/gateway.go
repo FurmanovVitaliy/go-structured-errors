@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	pb "github.com/FurmanovVitaliy/grpc-api/gen/go/errors/errors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/status"
+
+	pb "github.com/FurmanovVitaliy/grpc-api/gen/go/errors/errors"
 )
 
 // HTTPError represents a structured error response for an HTTP API.
@@ -24,7 +25,14 @@ type HTTPError struct {
 // GRPCAppErrorHandler is a custom error handler for grpc-gateway.
 // It translates gRPC errors into a structured JSON HTTP response.
 // It extracts the AppError details from the gRPC status and includes a trace ID from the context.
-func GRPCAppErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
+func GRPCAppErrorHandler(
+	ctx context.Context,
+	mux *runtime.ServeMux,
+	marshaler runtime.Marshaler,
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+) {
 	st := status.Convert(err)
 	httpCode := runtime.HTTPStatusFromCode(st.Code())
 	resp := HTTPError{
@@ -35,13 +43,13 @@ func GRPCAppErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler r
 	// Check for custom error details in the gRPC status.
 	for _, d := range st.Details() {
 		if detail, ok := d.(*pb.ErrorDetail); ok {
-			resp.Service = detail.Service
-			resp.ServiceCode = detail.Code
+			resp.Service = detail.GetService()
+			resp.ServiceCode = detail.GetCode()
 			// If there's a custom message in details, prefer it over the gRPC status message.
-			if detail.Message != "" {
-				resp.Message = detail.Message
+			if detail.GetMessage() != "" {
+				resp.Message = detail.GetMessage()
 			}
-			resp.Fields = detail.Fields
+			resp.Fields = detail.GetFields()
 			break
 		}
 	}

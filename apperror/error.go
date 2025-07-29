@@ -14,13 +14,13 @@ type ErrorFields map[string]string
 // a unique code, a human-readable message, and additional structured fields.
 // It supports error wrapping and can be converted to a gRPC status.
 type AppError struct {
-	Service string `json:"service,omitempty"` // example: user-service
-	Code    string `json:"code,omitempty"`    // example: 001
-	Message string `json:"message"`           // human readable message
-	Fields  ErrorFields `json:"fields,omitempty"` // additional fields, key-value pairs
-	cause   error // wrapped error
-	grpcCode int // used in grpc.go
-	traceID string // set in marshal.go
+	Service  string      `json:"service,omitempty"` // example: user-service
+	Code     string      `json:"code,omitempty"`    // example: 001
+	Message  string      `json:"message"`           // human readable message
+	Fields   ErrorFields `json:"fields,omitempty"`  // additional fields, key-value pairs
+	cause    error       // wrapped error
+	grpcCode uint32      // used in grpc.go
+	traceID  string      // set in marshal.go
 }
 
 // New creates a new AppError.
@@ -39,9 +39,9 @@ func Wrap(err error, appErr *AppError) *AppError {
 	if err == nil {
 		return nil
 	}
-	copy := *appErr
-	copy.cause = err
-	return &copy
+	copyErr := *appErr
+	copyErr.cause = err
+	return &copyErr
 }
 
 // WithField adds a single key-value pair to the error's fields.
@@ -57,7 +57,7 @@ func (e *AppError) AddFields(fields ErrorFields) *AppError {
 	if len(fields) == 0 {
 		return e
 	}
-	copy := *e
+	copyErr := *e
 	newFields := make(ErrorFields, len(e.Fields)+len(fields))
 
 	for k, v := range e.Fields {
@@ -66,16 +66,16 @@ func (e *AppError) AddFields(fields ErrorFields) *AppError {
 	for k, v := range fields {
 		newFields[k] = v
 	}
-	copy.Fields = newFields
-	return &copy
+	copyErr.Fields = newFields
+	return &copyErr
 }
 
 // WithFields replaces the error's fields with the provided ones.
 // It returns a new AppError to maintain immutability.
 func (e *AppError) WithFields(fields ErrorFields) *AppError {
-	copy := *e
-	copy.Fields = fields
-	return &copy
+	copyErr := *e
+	copyErr.Fields = fields
+	return &copyErr
 }
 
 // Error returns a string representation of the error, suitable for logging.
